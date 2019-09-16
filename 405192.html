@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title></title>
+  </head>
+  <body>
+  
+
+
+<style type="text/css">
+    #scroller_container {
+        margin: 0 auto;
+        width: 530px;
+        overflow: hidden;
+        line-height:0;
+        font-size:0;
+    }
+    #scroller_container div {
+        float: left;
+        vertical-align: baseline;
+    }
+    #scroller_container>div {
+        position: relative;
+        white-space: nowrap;
+        width: 100%;
+        padding: 22px 0;
+    }
+    #scroller_container>div a,
+    #scroller_container>div a img {
+        padding: 0;
+        margin:0;
+    }
+    #scroller_container>div a img {
+        margin: 0 1px;
+        border:0;
+    }
+</style>
+
+<script type="text/javascript">
+    var _scroller;
+    _scroller = function () { // scroller
+        return{
+            speed:10, /*скорость, чем больше значние, тем медленнее движение*/
+            direct:-1,/* -1 - движение влево, +1 - вправо*/
+            position:0,
+            t:null,
+            // Инициализация скроллера
+            init: function () {
+                var el;
+                // Установка обработчика колесика мыши
+                el = document.getElementById('scroller_container');
+                _scroller.addEvent(el, 'mousewheel', _scroller.wheel);
+                _scroller.addEvent(el, 'DOMMouseScroll', _scroller.wheel);
+
+                _scroller.timer(_scroller.direct); // запускаю скроллер
+            },
+
+            // Обработчик колесика мыши
+            wheel: function (e) {
+                _scroller.stop();
+                e = e ? e : window.event;
+                /*var wheelElem = e.target ? e.target : e.srcElement;*/
+                var wheelData = e.detail ? e.detail * -1 : e.wheelDelta / 40;
+
+                // В движке WebKit возвращается значение в 100 раз больше
+                if (Math.abs(wheelData) > 100) {
+                    wheelData = Math.round(wheelData / 100);
+                }
+                //_scroller.scroll(wheelData*10);
+                _scroller.direct=wheelData>0?1:-1;
+                _scroller.timer(_scroller.direct);
+                if (window.event) {
+                    e.cancelBubble = true;
+                    e.returnValue = false;
+                    e.cancel = true;
+                }
+                if (e.stopPropagation && e.preventDefault) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                }
+                return false;
+            },
+
+            // Функция скроллера
+            scroll: function (wheel) {
+                var el = document.getElementById('scroller_container').firstElementChild;
+                var o, oi, width;
+                _scroller.position += wheel;
+                if (wheel>0) {
+                    if (_scroller.position >= 0) { // берем последнюю картинку и вставляем ёё в начало
+                        // В этот момент можно подгружать более левую картинку и удалить последнюю
+                        o=el;//.firstElementChild; // контейнер с картинками
+                        oi=o.lastElementChild; // последняя картинка вместе с анкором
+                        width=oi.firstElementChild.clientWidth; // размер картинки
+                        o.insertBefore(oi,o.firstElementChild);
+                        _scroller.position-=width;
+                   }
+                }
+                else {
+                    o=el;//.firstElementChild; // контейнер с картинками
+                    oi=o.firstElementChild; // первая картинка вместе с анкором
+                    width=oi.firstElementChild.clientWidth; // размер картинки
+                    if(_scroller.position < -width){ // если картинка ушла влево из зоны видимости переношу её в конец списка
+                        // В этот момент можно подгружать следующую картинку и удалить первую
+                        o.appendChild(oi);
+                        _scroller.position+=width;
+                    }
+                }
+                el.style.left = _scroller.position + 'px';
+            },
+
+            // Таймер скроллера
+            timer: function (wheel) {
+                _scroller.stop();
+                _scroller.t = setInterval("_scroller.scroll(" + wheel + ");", _scroller.speed);
+            },
+
+            // Остановка скроллера
+            stop: function () {
+                if (_scroller.t != null) {
+                    clearInterval(_scroller.t);
+                    _scroller.t = null;
+                }
+            },
+
+            // назначить обработчик события
+            addEvent:function(el, evType, fn, useCapture) {
+                if (el.addEventListener) {
+                    el.addEventListener(evType, fn, useCapture);
+                }else if (el.attachEvent) {
+                    var r = el.attachEvent('on' + evType, fn);
+                }else el['on' + evType] = fn;
+             }
+        };
+    }();
+    /*if(!document.funcDomReady)document.funcDomReady=function(){_scroller.init()};
+    else onDomReady(_scroller.init);*/
+    window.onload=function(){setTimeout(_scroller.init,100);}; // стартуем с задержкой, чтобы все прогрузилось
+</script>
+
+<h1>Git проба нового коміту</h1>
+<p>Нова зміна файлу</p>
+<h1>Карусель фотографий</h1>
+<p>Карусель фотографий запускается сразу при открытии. Все картинки карусели прокручиваются непрерывно, до тех пор пока мышька не окажется над одной из них.
+Колесиком мышки находясь над каруселью можно задать направление движения карусели влево или вправо.</p>
+<p>Особенности данного слайдера-карусели:</p>
+<ul>
+    <li>Все картинки зацикленены, т.е. Вы можете бесконечно крутить в обе стороны, при этом картинки показываются по кругу</li>
+    <li>При наведении мышки на карусель, движение останавливаеется, чтобы сделать клик на выбранной картинке.</li>
+    <li>В каруселе могут быть картинки любого размера и соотношения сторон. Достаточно задать только высоту картинки.</li>
+    <li>Поддержка колесика мышки для управления направлением движения</li>
+    <li>Чистый, компактный Javascript. Не используются никакие сторонние библиотеки</li>
+</ul>
+<div id="scroller_container" onmousemove="_scroller.stop();" onmouseout="_scroller.timer(_scroller.direct);">
+    <div>
+        <a href="#1" onclick="return!1"><img src="http://kdg.htmlweb.ru/photo/praga/b1.jpg" height="100" alt=""></a>
+        <a href="#2" onclick="return!1"><img src="http://kdg.htmlweb.ru/photo/praga/b2.jpg" height="100" alt=""></a>
+        <a href="#3" onclick="return!1"><img src="http://kdg.htmlweb.ru/photo/praga/b3.jpg" height="100" alt=""></a>
+        <a href="#4" onclick="return!1"><img src="http://kdg.htmlweb.ru/photo/praga/b4.jpg" height="100" alt=""></a>
+        <a href="#5" onclick="return!1"><img src="http://kdg.htmlweb.ru/photo/praga/b5.jpg" height="100" alt=""></a>
+        <a href="#6" onclick="return!1"><img src="http://kdg.htmlweb.ru/photo/praga/b6.jpg" height="100" alt=""></a>
+    </div>
+</div>
+
+<br class="clear">
+<p>За основу взят код <a href="slider_photo_plenka.php">Слайдер фотопленки</a>, и добавлена обработка переноса последнего элемента в начало
+    при прокручивании за пределы первого элемента  и соответственно при вращении слайдера в другую сторону.</p>
+
+
+<script type="text/javascript">
+timeend= new Date();
+// IE и FF по разному отрабатывают getYear()
+timeend= new Date(2019, 04, 04,22, 15);
+// для задания обратного отсчета до определенной даты укажите дату в формате:
+// timeend= new Date(ГОД, МЕСЯЦ-1, ДЕНЬ);
+// Для задания даты с точностью до времени укажите дату в формате:
+// timeend= new Date(ГОД, МЕСЯЦ-1, ДЕНЬ, ЧАСЫ-1, МИНУТЫ);
+function time() {
+	today = new Date();
+	today = Math.floor((timeend-today)/1000);
+	tsec=today%60; today=Math.floor(today/60); if(tsec<10)tsec='0'+tsec;
+	tmin=today%60; today=Math.floor(today/60); if(tmin<10)tmin='0'+tmin;
+	thour=today%24; today=Math.floor(today/24);
+	timestr=today +" дней "+ thour+" часов "+tmin+" минут "+tsec+" секунд";
+	document.getElementById('t').innerHTML=timestr;
+	window.setTimeout("time()",1000);
+}
+</script>
+<body onload="time()">
+
+
+<h1>Обратный отсчет времени</h1>
+<p>До BAM осталось <span id="t" style="font-size:20px"></span></p>
+<p>Этот скрипт позволяет показать у себя на сайте время до какого-нибудь события,
+до нового года, до экзаменов, до приказа и т.д. Например:
+обратный отсчет времени до нового года</p>
+
+<script type="text/javascript">
+var random_number = Math.random();
+if (random_number < .5){
+ //здесь разместите код первого рекламного блока
+} else {
+//здесь разместите код второго рекламного блока
+}
+</script>
+
+
+
+	
+  </body>
+</html>
